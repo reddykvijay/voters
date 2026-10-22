@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Badvel Electors Portal | 124-Badvel Electoral Roll Query System</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <!-- Title & Branding -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 flex-shrink-0">
+          <i data-lucide="vote" class="w-5 h-5"></i>
+        </div>
+        <div class="truncate">
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white truncate">
+              Badvel Electors Portal
+            </h1>
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">
+              Verified PDF Roll
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 truncate hidden sm:block">
+            AC 124-BADVEL (SC) &bull; Official Draft Electoral Roll 2026 (Parts 285 & 286)
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex items-center gap-2">
+        <!-- View Mode Switcher -->
+        <div class="bg-slate-100 dark:bg-slate-800 p-1 rounded-lg flex items-center gap-1 border border-slate-200 dark:border-slate-700">
+          <button id="view-cards-btn" onclick="setViewMode('cards')" title="Card View" class="p-1.5 rounded-md text-xs font-medium transition-all bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm">
+            <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          </button>
+          <button id="view-table-btn" onclick="setViewMode('table')" title="Table View" class="p-1.5 rounded-md text-xs font-medium transition-all text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+            <i data-lucide="table" class="w-4 h-4"></i>
+          </button>
+          <button id="view-households-btn" onclick="setViewMode('households')" title="Households Family View" class="p-1.5 rounded-md text-xs font-medium transition-all text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+            <i data-lucide="home" class="w-4 h-4"></i>
+          </button>
+          <button id="view-analytics-btn" onclick="setViewMode('analytics')" title="Demographics & Stats" class="p-1.5 rounded-md text-xs font-medium transition-all text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+            <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Export Dropdown -->
+        <div class="relative">
+          <button id="export-btn" onclick="toggleExportMenu()" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Export</span>
+          </button>
+          <div id="export-menu" class="hidden absolute right-0 mt-2 w-44 rounded-xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 py-1 z-50 text-xs">
+            <button onclick="exportToCSV()" class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2">
+              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i> Export to CSV
+            </button>
+            <button onclick="exportToJSON()" class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2">
+              <i data-lucide="file-code" class="w-3.5 h-3.5 text-indigo-600"></i> Export to JSON
+            </button>
+            <div class="border-t border-slate-200 dark:border-slate-700 my-1"></div>
+            <button onclick="window.print()" class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2">
+              <i data-lucide="printer" class="w-3.5 h-3.5 text-purple-600"></i> Print Voter Slips
+            </button>
+          </div>
+        </div>
+
+        <!-- Print Voter Slips -->
+        <button onclick="window.print()" title="Print Printable Voter Slips" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-500/20 transition">
+          <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+          <span>Print Slips</span>
+        </button>
+
+        <!-- Import / Upload Data -->
+        <button onclick="openImportModal()" title="Import CSV or JSON" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
+          <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Dark Mode Toggle -->
+        <button onclick="toggleDarkMode()" id="theme-toggle" title="Toggle Dark/Light Mode" class="p-2 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
+          <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col gap-6">
+
+    <!-- KPI STATS SUMMARY ROW -->
+    <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <!-- Total Electors -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="users" class="w-3.5 h-3.5 text-indigo-500"></i> Total Electors
+        </span>
+        <div class="mt-2 flex items-baseline justify-between">
+          <span id="stat-total" class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">1,177</span>
+          <span id="stat-filtered-pill" class="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded">100%</span>
+        </div>
+      </div>
+
+      <!-- Male Voters -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="user" class="w-3.5 h-3.5 text-blue-500"></i> Male
+        </span>
+        <div class="mt-2 flex items-baseline justify-between">
+          <span id="stat-male" class="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">582</span>
+          <span id="stat-male-pct" class="text-[11px] font-medium text-slate-500 dark:text-slate-400">49.4%</span>
+        </div>
+      </div>
+
+      <!-- Female Voters -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="user-check" class="w-3.5 h-3.5 text-rose-500"></i> Female
+        </span>
+        <div class="mt-2 flex items-baseline justify-between">
+          <span id="stat-female" class="text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400">595</span>
+          <span id="stat-female-pct" class="text-[11px] font-medium text-slate-500 dark:text-slate-400">50.6%</span>
+        </div>
+      </div>
+
+      <!-- Gender Ratio -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="scale" class="w-3.5 h-3.5 text-purple-500"></i> Sex Ratio
+        </span>
+        <div class="mt-2 flex items-baseline justify-between">
+          <span id="stat-sex-ratio" class="text-2xl font-bold tracking-tight text-purple-600 dark:text-purple-400">1,022</span>
+          <span class="text-[10px] text-slate-400">F / 1k M</span>
+        </div>
+      </div>
+
+      <!-- Total Households -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="home" class="w-3.5 h-3.5 text-amber-500"></i> Households
+        </span>
+        <div class="mt-2 flex items-baseline justify-between">
+          <span id="stat-households" class="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">412</span>
+          <span id="stat-avg-family" class="text-[11px] text-slate-500 dark:text-slate-400">~2.9 / hs</span>
+        </div>
+      </div>
+
+      <!-- Average Age -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <i data-lucide="clock" class="w-3.5 h-3.5 text-emerald-500"></i> Avg Age
+        </span>
+        <div class="mt-2 flex items-baseline justify-between">
+          <span id="stat-avg-age" class="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">38.4</span>
+          <span class="text-[11px] text-slate-400">years</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEARCH & ADVANCED FILTER CONTROLS -->
+    <section class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col gap-4">
+      <!-- Universal Search Bar -->
+      <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          <input 
+            type="text" 
+            id="global-search" 
+            placeholder="Search by Elector Name, EPIC No (Voter ID), Relative Name, or House No..." 
+            class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white dark:focus:bg-slate-800 transition"
+            oninput="handleSearchInput()"
+          >
+          <button id="clear-search-btn" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <!-- Toggle Filter Drawer Button -->
+          <button onclick="toggleFilterDrawer()" id="filter-toggle-btn" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition">
+            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+            <span>Filters</span>
+            <span id="active-filter-badge" class="hidden w-2 h-2 rounded-full bg-indigo-600"></span>
+          </button>
+
+          <!-- Section Filter Dropdown -->
+          <select id="section-select" onchange="handleSectionChange()" class="text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-[180px] truncate">
+            <option value="all">All Sections</option>
+          </select>
+
+          <!-- Starred Filter -->
+          <button onclick="toggleStarredFilter()" id="starred-filter-btn" class="inline-flex items-center gap-1 px-3 py-2 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-amber-400 hover:text-amber-500 transition">
+            <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span class="hidden md:inline">Starred</span>
+            <span id="starred-count-badge" class="ml-1 text-[10px] bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 px-1.5 py-0.2 rounded-full font-bold">0</span>
+          </button>
+
+          <!-- Sort Dropdown -->
+          <select id="sort-select" onchange="handleSortChange()" class="text-xs font-medium py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="sl_asc">Serial No: 1 &rarr; 616</option>
+            <option value="sl_desc">Serial No: High &rarr; Low</option>
+            <option value="name_asc">Name: A &rarr; Z</option>
+            <option value="name_desc">Name: Z &rarr; A</option>
+            <option value="age_asc">Age: Youngest First</option>
+            <option value="age_desc">Age: Oldest First</option>
+            <option value="house_asc">House No</option>
+          </select>
+
+          <!-- Reset All Filters -->
+          <button onclick="resetAllFilters()" title="Reset All Filters" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- FILTER DRAWER (Collapsible) -->
+      <div id="filter-drawer" class="pt-3 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- Part Number Filter -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+            Electoral Part / Polling Station
+          </label>
+          <div class="grid grid-cols-3 gap-1">
+            <button onclick="setPartFilter('all')" data-part="all" class="part-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 transition">
+              All (1177)
+            </button>
+            <button onclick="setPartFilter(285)" data-part="285" class="part-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition">
+              Part 285 (616)
+            </button>
+            <button onclick="setPartFilter(286)" data-part="286" class="part-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition">
+              Part 286 (561)
+            </button>
+          </div>
+        </div>
+
+        <!-- Gender Filter -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">
+            Gender
+          </label>
+          <div class="grid grid-cols-3 gap-1">
+            <button onclick="setGenderFilter('all')" data-gender="all" class="gender-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 transition">
+              All
+            </button>
+            <button onclick="setGenderFilter('Male')" data-gender="Male" class="gender-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition">
+              Male
+            </button>
+            <button onclick="setGenderFilter('Female')" data-gender="Female" class="gender-btn px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition">
+              Female
+            </button>
+          </div>
+        </div>
+
+        <!-- Age Filter & Quick Tags -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Age Range</label>
+            <span id="age-range-display" class="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400">18 - 100 yrs</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="range" id="age-min" min="18" max="100" value="18" oninput="handleAgeRangeChange()" class="w-full accent-indigo-600 cursor-pointer">
+            <input type="range" id="age-max" min="18" max="100" value="100" oninput="handleAgeRangeChange()" class="w-full accent-indigo-600 cursor-pointer">
+          </div>
+          <div class="flex items-center gap-1 mt-1.5">
+            <button onclick="setQuickAge(18, 25)" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-indigo-50 hover:text-indigo-600">Youth (18-25)</button>
+            <button onclick="setQuickAge(26, 40)" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-indigo-50 hover:text-indigo-600">26-40</button>
+            <button onclick="setQuickAge(41, 60)" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-indigo-50 hover:text-indigo-600">41-60</button>
+            <button onclick="setQuickAge(60, 100)" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-indigo-50 hover:text-indigo-600">Senior (60+)</button>
+          </div>
+        </div>
+
+        <!-- Relation Type & House Filter -->
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">Relation</label>
+            <select id="relation-select" onchange="handleRelationFilterChange()" class="w-full text-xs font-medium py-1.5 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+              <option value="all">All Relations</option>
+              <option value="father">Father's Name</option>
+              <option value="husband">Husband's Name</option>
+              <option value="mother">Mother's Name</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5">House No</label>
+            <input 
+              type="text" 
+              id="house-filter-input" 
+              placeholder="e.g. 1-12" 
+              oninput="handleHouseFilterInput()"
+              class="w-full text-xs py-1.5 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACTIVE QUERY SUMMARY & RESULTS STATUS -->
+    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
+      <div class="flex items-center gap-2">
+        <span>Showing <strong id="results-count" class="text-slate-900 dark:text-white font-bold">1,177</strong> electors</span>
+        <span id="active-filter-tags" class="flex items-center gap-1 flex-wrap"></span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="pagination-info" class="hidden sm:inline">Page 1 of 48</span>
+      </div>
+    </div>
+
+    <!-- VIEW 1: VOTER CARDS / SLIPS GRID -->
+    <section id="view-cards" class="view-panel">
+      <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Voter Cards injected dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- VIEW 2: DATA SPREADSHEET TABLE -->
+    <section id="view-table" class="view-panel hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+          <thead class="bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 uppercase font-semibold text-[11px] tracking-wider">
+            <tr>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-indigo-600" onclick="setSortFromHeader('part')">Part</th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-indigo-600" onclick="setSortFromHeader('sl')">Sl No</th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-indigo-600" onclick="setSortFromHeader('epic')">EPIC No</th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-indigo-600" onclick="setSortFromHeader('name')">Elector Name</th>
+              <th scope="col" class="py-3 px-4">Relation Type</th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-indigo-600" onclick="setSortFromHeader('relative')">Relative Name</th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-indigo-600" onclick="setSortFromHeader('house')">House No</th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-indigo-600" onclick="setSortFromHeader('age')">Age</th>
+              <th scope="col" class="py-3 px-4 cursor-pointer hover:text-indigo-600" onclick="setSortFromHeader('gender')">Gender</th>
+              <th scope="col" class="py-3 px-4">Section</th>
+              <th scope="col" class="py-3 px-4 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="table-body" class="divide-y divide-slate-100 dark:divide-slate-800/60">
+            <!-- Table rows injected dynamically by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 3: HOUSEHOLDS / FAMILY EXPLORER -->
+    <section id="view-households" class="view-panel hidden flex flex-col gap-4">
+      <div class="bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/50 rounded-2xl p-4 text-xs text-indigo-900 dark:text-indigo-200 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <i data-lucide="info" class="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0"></i>
+          <div>
+            <strong class="font-bold">Household / Family Grouping View:</strong>
+            Electors grouped by registered House Number. Ideal for door-to-door booth mobilization and verifying family units.
+          </div>
+        </div>
+        <span id="household-total-badge" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-bold">Households</span>
+      </div>
+
+      <div id="households-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Household Cards injected dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- VIEW 4: DEMOGRAPHICS & ANALYTICS -->
+    <section id="view-analytics" class="view-panel hidden flex flex-col gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Age Distribution Histogram -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+            <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-500"></i> Age Demographics Breakdown
+          </h3>
+          <div id="age-chart-bars" class="space-y-3">
+            <!-- Age brackets injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Gender Ratio by Part -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-purple-500"></i> Gender Distribution by Polling Station
+          </h3>
+          <div id="gender-part-bars" class="space-y-4">
+            <!-- Part 285 & Part 286 bars -->
+          </div>
+        </div>
+
+        <!-- Top Surnames / Family Lineages -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+            <i data-lucide="git-merge" class="w-4 h-4 text-emerald-500"></i> Prominent Family Names / Surnames
+          </h3>
+          <div id="surnames-list" class="space-y-2">
+            <!-- Surnames list injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Largest Multi-Voter Households -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+            <i data-lucide="building-2" class="w-4 h-4 text-amber-500"></i> Largest Multi-Voter Households
+          </h3>
+          <div id="top-households-list" class="space-y-2">
+            <!-- Top households injected dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGINATION CONTROLS -->
+    <div id="pagination-controls" class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+      <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+        <span>Rows per page:</span>
+        <select id="page-size-select" onchange="handlePageSizeChange()" class="py-1 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs">
+          <option value="24">24</option>
+          <option value="48" selected>48</option>
+          <option value="96">96</option>
+          <option value="200">200</option>
+          <option value="all">All (1177)</option>
+        </select>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <button id="prev-page-btn" onclick="goToPage(currentPage - 1)" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          Previous
+        </button>
+        <span id="current-page-num" class="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+          Page 1
+        </span>
+        <button id="next-page-btn" onclick="goToPage(currentPage + 1)" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          Next
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ELECTOR DETAILS MODAL -->
+  <div id="detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transition-all transform">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-indigo-600 to-violet-600 p-5 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center font-bold text-lg">
+            <i data-lucide="id-card" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="modal-name" class="font-bold text-base leading-tight">Voter Name</h3>
+            <span id="modal-epic" class="text-xs font-mono font-semibold tracking-wider text-indigo-100">XLM1234567</span>
+          </div>
+        </div>
+        <button onclick="closeDetailModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+            <span class="text-slate-400 block text-[10px] font-semibold uppercase">Relative Name</span>
+            <span id="modal-relative" class="font-semibold text-slate-800 dark:text-slate-200 text-sm">Father's Name</span>
+            <span id="modal-rel-type" class="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium block">Father</span>
+          </div>
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+            <span class="text-slate-400 block text-[10px] font-semibold uppercase">House Number</span>
+            <span id="modal-house" class="font-semibold text-slate-800 dark:text-slate-200 text-sm">1-23</span>
+            <button onclick="filterByHouseFromModal()" class="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline block font-medium mt-0.5">View Household &rarr;</button>
+          </div>
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+            <span class="text-slate-400 block text-[10px] font-semibold uppercase">Age & Gender</span>
+            <span id="modal-age-gender" class="font-semibold text-slate-800 dark:text-slate-200 text-sm">28 &bull; Male</span>
+          </div>
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+            <span class="text-slate-400 block text-[10px] font-semibold uppercase">Part & Serial</span>
+            <span id="modal-part-sl" class="font-semibold text-slate-800 dark:text-slate-200 text-sm">Part 285 &bull; Sl #12</span>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+          <span class="text-slate-400 block text-[10px] font-semibold uppercase">Section</span>
+          <span id="modal-section" class="font-semibold text-slate-800 dark:text-slate-200 text-xs">Section Name</span>
+        </div>
+
+        <!-- Co-residents / Family Members in Same House -->
+        <div class="pt-2">
+          <h4 class="font-bold text-slate-700 dark:text-slate-300 text-xs mb-2 flex items-center gap-1.5">
+            <i data-lucide="home" class="w-3.5 h-3.5 text-indigo-500"></i> Family Members at this Address
+          </h4>
+          <div id="modal-family-list" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+            <!-- Family members list -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 dark:bg-slate-800/80 p-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
+        <button id="modal-star-btn" onclick="toggleModalStar()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:border-amber-400 hover:text-amber-500 transition">
+          <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span id="modal-star-text">Star Voter</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="printSingleSlipFromModal()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+            <span>Print Slip</span>
+          </button>
+          <button onclick="closeDetailModal()" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMPORT / UPLOAD DATA MODAL -->
+  <div id="import-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-md w-full p-6 text-xs space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+          <i data-lucide="upload-cloud" class="w-4 h-4 text-indigo-500"></i> Import Electoral Roll
+        </h3>
+        <button onclick="closeImportModal()" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <p class="text-slate-500 dark:text-slate-400">
+        You can upload any CSV or JSON voter roll file to immediately query and analyze it in this application.
+      </p>
+
+      <div class="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-center hover:border-indigo-500 transition cursor-pointer" onclick="document.getElementById('csv-file-input').click()">
+        <input type="file" id="csv-file-input" accept=".csv,.json" class="hidden" onchange="handleFileUpload(event)">
+        <i data-lucide="file-up" class="w-8 h-8 mx-auto text-indigo-500 mb-2"></i>
+        <span class="block font-semibold text-slate-700 dark:text-slate-200">Click to upload CSV or JSON</span>
+        <span class="text-[11px] text-slate-400 mt-1 block">Supports Badvel Electors CSV or any EC electoral roll format</span>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeImportModal()" class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRINT SLIP CONTAINER (Hidden on screen, visible during @media print) -->
+  <div id="print-container" class="hidden print:block">
+    <!-- Printable 3-per-row voter slips -->
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-12 opacity-0 pointer-events-none transition-all duration-300 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-xl text-xs font-medium flex items-center gap-2">
+    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400 dark:text-emerald-600"></i>
+    <span id="toast-message">Action successful</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
